@@ -60,19 +60,16 @@ void network_ready() {
         send_modem_command("AT+UHTTP=0,1,\"" BACKEND_SERVER_ADDRESS "\"");
         send_modem_command("AT+UHTTP=0,5," BACKEND_SERVER_PORT);
         send_modem_command("AT+UHTTPC=0,1,\"/posts/1\",\"buffer_get\"");    /* must wait for +UUHTTPCR: 0,1,1 (HTTP GET success URC) */
-        send_modem_command("AT+URDFILE=\"buffer_get\"");
     }
 }
 
 void handle_modem_response(char *response, uint16_t response_length) {
 #ifdef TRACE
-    if (strncmp(response, "[Res]", 5)) {
-        SerialUSB.print("[Res]: ");
-        for (int i=0; i<response_length; i++) {
-            SerialUSB.print((char)response[i]);
-        }
-        SerialUSB.print("\r\n");
+    SerialUSB.print("[SARA-U270] ");
+    for (int i=0; i<response_length; i++) {
+        SerialUSB.print((char)response[i]);
     }
+    SerialUSB.print("\r\n");
 #endif
 
     // Final response
@@ -103,6 +100,10 @@ void handle_modem_response(char *response, uint16_t response_length) {
             g_modem_has_internet = true;
             network_ready();
         }
+    } else if (!strncmp(response, "+UUHTTPCR: 0,1,1", 16)) {
+        /* HTTP GET success URC */
+        send_modem_command("AT+URDFILE=\"buffer_get\"");
+        /* TODO: sscanf the result codes */
     }
 }
 
