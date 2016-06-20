@@ -5,10 +5,9 @@
 
 #include <Arduino.h>
 #include <string.h>
+#include <debug_trace.h>
 #include <app_error.h>
 #include "sara_u2.h"
-
-#define TRACE
 
 uint32_t send_modem_command(sara_u2_modem_t *p_modem, const char *command);
 
@@ -59,13 +58,11 @@ void network_ready(sara_u2_modem_t *p_modem) {
 }
 
 void handle_modem_response(sara_u2_modem_t *p_modem, char *response, uint16_t response_length) {
-#ifdef TRACE
-    SerialUSB.print("[SARA-U270] ");
+    trace_print("[SARA-U270] ");
     for (int i=0; i<response_length; i++) {
-        SerialUSB.print((char)response[i]);
+        trace_print((char)response[i]);
     }
-    SerialUSB.print("\r\n");
-#endif
+    trace_print("\r\n");
 
     // Final response
     if (!strncmp(response, "OK", 2)) {

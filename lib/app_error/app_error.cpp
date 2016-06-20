@@ -4,10 +4,11 @@
  */
 
 #include <Arduino.h>
+#include <debug_trace.h>
 #include "app_error.h"
 
 void app_err_check(uint32_t err_code) {
-  SerialUSB.print("err_code: ");
-  SerialUSB.print(err_code);
-  SerialUSB.print("\n");
+  trace_print("err_code: ");
+  trace_print(err_code);
+  trace_print("\n");
 }

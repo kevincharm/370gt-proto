@@ -6,14 +6,10 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include <string.h>
+#include <debug_trace.h>
 #include <app_error.h>
 #include <sara_u2.h>
 #include "conf.h"
-
-#define TRACE
-#ifdef TRACE
-  #define trace_print(...) SerialUSB.print(__VA_ARGS__)
-#endif
 
 static sara_u2_modem_t g_modem;
 
