@@ -4,6 +4,7 @@
  */
 
 #include <Arduino.h>
+#include <Wire.h> /* Do not remove: required by max_m8 (platformio) */
 #include <stdint.h>
 #include <string.h>
 #include <debug_trace.h>
