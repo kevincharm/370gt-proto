@@ -9,9 +9,11 @@
 #include <debug_trace.h>
 #include <app_error.h>
 #include <sara_u2.h>
+#include <max_m8.h>
 #include "conf.h"
 
 static sara_u2_modem_t g_modem;
+static max_m8_gps_t g_gps;
 
 void modem_event_handler(sara_u2_event_t *p_event) {
   trace_print("Got modem event!\n");
@@ -38,6 +40,14 @@ void setup() {
   sara_u2_configure(&g_modem, modem_conf);
   trace_print("Initialising modem.\n");
   sara_u2_init(&g_modem);
+
+  static const max_m8_gps_conf_t gps_conf = {
+    .address = GPS_I2C_ADDRESS
+  };
+  trace_print("Configuring GPS.\n");
+  max_m8_configure(&g_gps, gps_conf);
+  trace_print("Initialising GPS.\n");
+  max_m8_init(&g_gps);
 
   trace_print("Finished initialisation.\n");
 }
