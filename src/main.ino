@@ -4,7 +4,7 @@
  */
 
 #include <Arduino.h>
-#include <Wire.h> /* Do not remove: required by max_m8 (platformio) */
+#include <Wire.h>
 #include <stdint.h>
 #include <string.h>
 #include <debug_trace.h>
@@ -37,10 +37,10 @@ void setup() {
     .event_handler = modem_event_handler,
     .apn = APN_TELSTRA
   };
-  trace_print("Configuring modem.\n");
-  sara_u2_configure(&g_modem, modem_conf);
-  trace_print("Initialising modem.\n");
-  sara_u2_init(&g_modem);
+  //trace_print("Configuring modem.\n");
+  //sara_u2_configure(&g_modem, modem_conf);
+  //trace_print("Initialising modem.\n");
+  //sara_u2_init(&g_modem);
 
   static const max_m8_gps_conf_t gps_conf = {
     .address = GPS_I2C_ADDRESS

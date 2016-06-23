@@ -61,6 +61,15 @@
 #define UBX_MON_HW          0x09
 #define UBX_MON_VER         0x04
 
+typedef struct ubx_packet_t {
+  uint8_t message_class;
+  uint8_t message_id;
+  uint16_t payload_length; /* excluding sync chars, class, ID, length & checksum */
+  uint8_t *p_payload;
+  uint8_t checksum_a;
+  uint8_t checksum_b;
+} ubx_packet_t;
+
 struct max_m8_gps_t;
 
 typedef struct max_m8_gps_t {
