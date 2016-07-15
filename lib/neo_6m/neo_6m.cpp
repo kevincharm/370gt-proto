@@ -1,5 +1,5 @@
 /**
- * MAX M8 Driver for Arduino
+ * u-blox NEO-6M Driver for Arduino
  * @author Kevin Tjiam <kevin@tjiam.com>
  */
 
@@ -7,7 +7,7 @@
 #include <Wire.h>
 #include <debug_trace.h>
 #include <app_error.h>
-#include "max_m8.h"
+#include "neo_6m.h"
 
 /**
  *  UBX Checksum
@@ -32,7 +32,7 @@ static inline void ubx_packet_calculate_checksum(ubx_packet_t *p_packet) {
   }
 }
 
-uint32_t ubx_packet_send(max_m8_gps_t *p_gps, ubx_packet_t *p_packet) {
+uint32_t ubx_packet_send(neo_6m_gps_t *p_gps, ubx_packet_t *p_packet) {
   uint32_t err_code;
 
   trace_print("\n=> proc ubx_packet_send()\n");
@@ -44,64 +44,76 @@ uint32_t ubx_packet_send(max_m8_gps_t *p_gps, ubx_packet_t *p_packet) {
   trace_print(p_packet->checksum_b);
   trace_print("\n");
 
-  Wire.beginTransmission(p_gps->address);
-  Wire.write(UBX_HEADER_1);
-  Wire.write(UBX_HEADER_2);
-  Wire.write(p_packet->message_class);
-  Wire.write(p_packet->message_id);
-  Wire.write(p_packet->payload_length & 0xFF);
-  Wire.write((p_packet->payload_length >> 8) & 0xFF);
+  Serial2.print(UBX_HEADER_1);
+  Serial2.print(UBX_HEADER_2);
+  Serial2.print(p_packet->message_class);
+  Serial2.print(p_packet->message_id);
+  Serial2.print(p_packet->payload_length & 0xFF);
+  Serial2.print((p_packet->payload_length >> 8) & 0xFF);
   trace_print("==> Begin writing payload...\n");
   for (uint16_t i = 0; i < p_packet->payload_length; i++) {
-      Wire.write(p_packet->p_payload[i]);
+      Serial2.print(p_packet->p_payload[i]);
   }
   trace_print("==> Finished writing payload...\n");
-  Wire.write(p_packet->checksum_a);
-  Wire.write(p_packet->checksum_b);
-  Wire.endTransmission();
+  Serial2.print(p_packet->checksum_a);
+  Serial2.print(p_packet->checksum_b);
 
-  trace_print("==> Sent UBX packet.");
-
-  uint8_t rx_buffer[256];
-  uint8_t rx_buffer_length = 0;
-  Wire.requestFrom(p_gps->address, 40);
-  while (Wire.available()) {
-    rx_buffer[rx_buffer_length++] = Wire.read();
-  }
-
-  trace_print("UBX Response: ");
-  for (uint8_t i = 0; i < rx_buffer_length; i++) {
-    trace_print(rx_buffer[i]);
-  }
-  trace_print('\n');
+  trace_print("==> Sent UBX packet.\n");
 
   err_code = RESPONSE_OK;
   return err_code;
 }
 
-uint32_t max_m8_configure(max_m8_gps_t *p_gps, const max_m8_gps_conf_t gps_conf) {
+void handle_gps_response(neo_6m_gps_t *p_modem, char *response, uint16_t response_length) {
+  trace_print("[SARA-U270] ");
+  for (int i=0; i<response_length; i++) {
+    trace_print((char)response[i]);
+  }
+  trace_print("\r\n");
+}
+
+void flush_gps_responses(neo_6m_gps_t *p_gps) {
+  while (Serial2.available()) {
+    uint8_t read_buffer[256];
+    uint8_t read_buffer_length;
+
+    // clear buffer
+    memset(read_buffer, '\0', 256);
+    read_buffer_length = Serial2.readBytesUntil('\n', read_buffer, 255);
+
+    handle_gps_response(p_gps, (char *)read_buffer, read_buffer_length);
+  }
+}
+
+void neo_6m_accept_serial_event(neo_6m_gps_t *p_gps) {
+  flush_gps_responses(p_gps);
+}
+
+uint32_t start_gps(neo_6m_gps_t *p_gps) {
   uint32_t err_code;
 
-  p_gps->address = gps_conf.address;
+  while (!Serial2);
+  Serial2.begin(9600);
+  Serial2.setTimeout(5000);
+  flush_gps_responses(p_gps);
 
   err_code = RESPONSE_OK;
   return err_code;
 }
 
-
-uint32_t max_m8_init(max_m8_gps_t *p_gps) {
+uint32_t neo_6m_configure(neo_6m_gps_t *p_gps, const neo_6m_gps_conf_t gps_conf) {
   uint32_t err_code;
 
-  // Join I2C
-  pinMode(71, OUTPUT);
-  for (int i = 0; i < 8; i++) {
-    digitalWrite(71, HIGH);
-    delayMicroseconds(3);
-    digitalWrite(71, LOW);
-    delayMicroseconds(3);
-  }
-  pinMode(71, INPUT);
-  Wire.begin();
+  p_gps->event_handler = gps_conf.event_handler;
+
+  err_code = RESPONSE_OK;
+  return err_code;
+}
+
+uint32_t neo_6m_init(neo_6m_gps_t *p_gps) {
+  uint32_t err_code;
+
+  start_gps(p_gps);
 
   static ubx_packet_t ubx_packet_test = {
     .message_class = UBX_CLASS_MON,

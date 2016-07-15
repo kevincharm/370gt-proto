@@ -1,10 +1,10 @@
 /**
- * MAX M8 Driver for Arduino
+ * u-blox NEO-6M Driver for Arduino
  * @author Kevin Tjiam <kevin@tjiam.com>
  */
 
-#ifndef MAX_M8_H__
-#define MAX_M8_H__
+#ifndef NEO_6M_H__
+#define NEO_6M_H__
 
 #include <stdint.h>
 
@@ -55,11 +55,25 @@
 #define UBX_NAV_TIMEUTC     0x21
 #define UBX_NAV_VELECEF     0x11
 #define UBX_NAV_VELNED      0x12
+/* UBX-CFG */
+#define UBX_CFG_PRT         0x00
 /* UBX-MON */
 #define UBX_MON_GNSS        0x28
 #define UBX_MON_HW2         0x0B
 #define UBX_MON_HW          0x09
 #define UBX_MON_VER         0x04
+
+struct neo_6m_gps_t;
+
+typedef enum neo_6m_event_type_t {
+  NEO_6M_EVENT_NETWORK_READY
+} neo_6m_event_type_t;
+
+typedef struct neo_6m_event_t {
+  neo_6m_gps_t *p_gps;
+  neo_6m_event_type_t event_type;
+  void *p_event_data;
+} neo_6m_event_t;
 
 typedef struct ubx_packet_t {
   uint8_t message_class;
@@ -70,17 +84,16 @@ typedef struct ubx_packet_t {
   uint8_t checksum_b;
 } ubx_packet_t;
 
-struct max_m8_gps_t;
+typedef struct neo_6m_gps_t {
+  void (*event_handler)(neo_6m_event_t *p_event);
+} neo_6m_gps_t;
 
-typedef struct max_m8_gps_t {
-  uint8_t address;
-} max_m8_gps_t;
+typedef struct neo_6m_gps_conf_t {
+  void (*event_handler)(neo_6m_event_t *p_event);
+} neo_6m_gps_conf_t;
 
-typedef struct max_m8_gps_conf_t {
-  uint8_t address;
-} max_m8_gps_conf_t;
-
-extern uint32_t max_m8_configure(max_m8_gps_t *p_gps, const max_m8_gps_conf_t gps_conf);
-extern uint32_t max_m8_init(max_m8_gps_t *p_gps);
+extern void neo_6m_accept_serial_event(neo_6m_gps_conf_t *p_gps);
+extern uint32_t neo_6m_configure(neo_6m_gps_t *p_gps, const neo_6m_gps_conf_t gps_conf);
+extern uint32_t neo_6m_init(neo_6m_gps_t *p_gps);
 
 #endif

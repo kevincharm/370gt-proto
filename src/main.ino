@@ -10,17 +10,21 @@
 #include <debug_trace.h>
 #include <app_error.h>
 #include <sara_u2.h>
-#include <max_m8.h>
+#include <neo_6m.h>
 #include "conf.h"
 
 static sara_u2_modem_t g_modem;
-static max_m8_gps_t g_gps;
+static neo_6m_gps_t g_gps;
 
 void modem_event_handler(sara_u2_event_t *p_event) {
   trace_print("Got modem event!\n");
   if (p_event->event_type == SARA_U2_EVENT_NETWORK_READY) {
     trace_print("Network ready!\n");
   }
+}
+
+void gps_event_handler(neo_6m_event_t *p_event) {
+  trace_print("Got GPS event!\n");
 }
 
 void serialEvent() {
@@ -42,13 +46,13 @@ void setup() {
   //trace_print("Initialising modem.\n");
   //sara_u2_init(&g_modem);
 
-  static const max_m8_gps_conf_t gps_conf = {
-    .address = GPS_I2C_ADDRESS
+  static const neo_6m_gps_conf_t gps_conf = {
+    .event_handler = gps_event_handler
   };
   trace_print("Configuring GPS.\n");
-  max_m8_configure(&g_gps, gps_conf);
+  neo_6m_configure(&g_gps, gps_conf);
   trace_print("Initialising GPS.\n");
-  max_m8_init(&g_gps);
+  neo_6m_init(&g_gps);
 
   trace_print("Finished initialisation.\n");
 }
