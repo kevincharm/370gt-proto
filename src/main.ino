@@ -15,6 +15,7 @@
 
 static sara_u2_modem_t g_modem;
 static neo_6m_gps_t g_gps;
+static volatile bool led_on = false;
 
 void modem_event_handler(sara_u2_event_t *p_event) {
   trace_print("Got modem event!\n");
@@ -29,9 +30,17 @@ void gps_event_handler(neo_6m_event_t *p_event) {
 
 void serialEvent() {
   sara_u2_accept_serial_event(&g_modem);
+  neo_6m_accept_serial_event(&g_gps);
+  if (led_on) {
+    digitalWrite(13, LOW);
+  } else {
+    digitalWrite(13, HIGH);
+  }
 }
 
 void setup() {
+  pinMode(13, OUTPUT);
+
   while (!SerialUSB);
   SerialUSB.begin(115200);
 

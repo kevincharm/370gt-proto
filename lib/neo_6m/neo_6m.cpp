@@ -65,7 +65,7 @@ uint32_t ubx_packet_send(neo_6m_gps_t *p_gps, ubx_packet_t *p_packet) {
 }
 
 void handle_gps_response(neo_6m_gps_t *p_modem, char *response, uint16_t response_length) {
-  trace_print("[SARA-U270] ");
+  trace_print("[NEO-6M] ");
   for (int i=0; i<response_length; i++) {
     trace_print((char)response[i]);
   }
@@ -114,6 +114,40 @@ uint32_t neo_6m_init(neo_6m_gps_t *p_gps) {
   uint32_t err_code;
 
   start_gps(p_gps);
+
+  static ubx_packet_t ubx_cfg_port_packet = {
+    .message_class = UBX_CLASS_CFG,
+    .message_id = UBX_CFG_PRT,
+    .payload_length = 20
+  };
+  ubx_cfg_port_packet.p_payload[0] = 1;    // portID - 1 or 2 for UART
+  ubx_cfg_port_packet.p_payload[1] = 0;    // reserved0
+  ubx_cfg_port_packet.p_payload[2] = 0;    // txReady
+  ubx_cfg_port_packet.p_payload[3] = 0;    // txReady
+  /* port config */
+  uint32_t cfg_port_mode = 0x03 << 6;      // charLen - 8 bits
+  cfg_port_mode |= 0x04 << 9;              // no parity
+  ubx_cfg_port_packet.p_payload[4] = cfg_port_mode & 0xFF;
+  ubx_cfg_port_packet.p_payload[5] = (cfg_port_mode >> 8) & 0xFF;
+  ubx_cfg_port_packet.p_payload[6] = (cfg_port_mode >> 16) & 0xFF;
+  ubx_cfg_port_packet.p_payload[7] = (cfg_port_mode >> 24) & 0xFF;
+  /* baudrate */
+  uint32_t baudrate = 9600;
+  ubx_cfg_port_packet.p_payload[8] = baudrate & 0xFF;
+  ubx_cfg_port_packet.p_payload[9] = (baudrate >> 8) & 0xFF;
+  ubx_cfg_port_packet.p_payload[10] = (baudrate >> 16) & 0xFF;
+  ubx_cfg_port_packet.p_payload[11] = (baudrate >> 24) & 0xFF;
+  ubx_cfg_port_packet.p_payload[12] = 0x02; // inProtoMask LSB
+  ubx_cfg_port_packet.p_payload[13] = 0x00;
+  ubx_cfg_port_packet.p_payload[14] = 0x02; // outProtoMask LSB
+  ubx_cfg_port_packet.p_payload[15] = 0x00;
+  ubx_cfg_port_packet.p_payload[16] = 0x00; // always set to zero
+  ubx_cfg_port_packet.p_payload[17] = 0x00; // always set to zero
+  ubx_cfg_port_packet.p_payload[18] = 0x00; // always set to zero
+  ubx_cfg_port_packet.p_payload[19] = 0x00; // always set to zero
+  ubx_packet_send(p_gps, &ubx_cfg_port_packet);
+
+  delay(200);
 
   static ubx_packet_t ubx_packet_test = {
     .message_class = UBX_CLASS_MON,
