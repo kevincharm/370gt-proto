@@ -30,6 +30,9 @@ void gps_event_handler(neo_6m_event_t *p_event) {
 
 void serialEvent() {
   sara_u2_accept_serial_event(&g_modem);
+}
+
+void serialEvent2() {
   neo_6m_accept_serial_event(&g_gps);
   if (led_on) {
     digitalWrite(13, LOW);
@@ -67,5 +70,6 @@ void setup() {
 }
 
 void loop() {
-  //
+  //neo_6m_poll_cfg_prt(&g_gps);
+  delay(5000);
 }

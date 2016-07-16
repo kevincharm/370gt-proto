@@ -95,5 +95,6 @@ typedef struct neo_6m_gps_conf_t {
 extern void neo_6m_accept_serial_event(neo_6m_gps_t *p_gps);
 extern uint32_t neo_6m_configure(neo_6m_gps_t *p_gps, const neo_6m_gps_conf_t gps_conf);
 extern uint32_t neo_6m_init(neo_6m_gps_t *p_gps);
+extern void neo_6m_poll_cfg_prt(neo_6m_gps_t *p_gps);
 
 #endif

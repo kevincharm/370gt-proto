@@ -150,8 +150,8 @@ uint32_t neo_6m_init(neo_6m_gps_t *p_gps) {
   delay(200);
 
   static ubx_packet_t ubx_packet_test = {
-    .message_class = UBX_CLASS_MON,
-    .message_id = UBX_MON_VER,
+    .message_class = UBX_CLASS_CFG,
+    .message_id = UBX_CFG_PRT,
     .payload_length = 0,
     .p_payload = 0
   };
@@ -159,4 +159,14 @@ uint32_t neo_6m_init(neo_6m_gps_t *p_gps) {
 
   err_code = RESPONSE_OK;
   return err_code;
+}
+
+void neo_6m_poll_cfg_prt(neo_6m_gps_t *p_gps) {
+  static ubx_packet_t ubx_packet_test = {
+    .message_class = UBX_CLASS_CFG,
+    .message_id = UBX_CFG_PRT,
+    .payload_length = 0,
+    .p_payload = 0
+  };
+  ubx_packet_send(p_gps, &ubx_packet_test);
 }
